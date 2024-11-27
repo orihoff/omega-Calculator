@@ -21,3 +21,9 @@ class InvalidExpressionException(CalculatorException):
         super().__init__(message)
 
 
+class DivisionByZeroException(CalculatorException):
+    """
+    Raised when a division by zero is attempted.
+    """
+    def __init__(self):
+        super().__init__("Division by zero is not allowed.")
