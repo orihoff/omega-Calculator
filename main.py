@@ -1,26 +1,21 @@
-from Operators import PowerOperator, AdditionOperator, SubtractionOperator, FactorialOperator
+from Calculator import Calculator
 
-def test_operators():
-    """
-    Test various operators and demonstrate their functionality.
-    """
-    # Power Operator
-    power = PowerOperator()
-    print(f"2 ^ 3 = {power.execute(2, 3)}")  # Output: 8
+def main():
+    calculator = Calculator()
+    expressions = [
+        "2 + 3 * 4",       # אמור להחזיר 14
+        "(2 + 3) * 4",     # אמור להחזיר 20
+        "5!",              # אמור להחזיר 120
+        "2 ^ 3",           # אמור להחזיר 8
+        "10 / 2",          # אמור להחזיר 5
+        "5 $ 3",           # אופרטור מקסימום, אמור להחזיר 5
+        "5 & 3",           # אופרטור מינימום, אמור להחזיר 3
+    ]
 
-    # Addition Operator
-    addition = AdditionOperator()
-    print(f"5 + 7 = {addition.execute(5, 7)}")  # Output: 12
-
-    # Subtraction Operator
-    subtraction = SubtractionOperator()
-    print(f"10 - 4 = {subtraction.execute(10, 4)}")  # Output: 6
-
-    # Factorial Operator
-    factorial = FactorialOperator()
-    print(f"5! = {factorial.execute(5)}")  # Output: 120
-
+    for expr in expressions:
+        result = calculator.calculate(expr)
+        print(f"{expr} = {result}")
 
 if __name__ == "__main__":
-    print("Testing Operators:")
-    test_operators()
+    print("בדיקת מחשבון:")
+    main()
