@@ -1,21 +1,26 @@
 from Calculator import Calculator
 
+
 def main():
     calculator = Calculator()
-    expressions = [
-        "2 + 3 * 4",       # אמור להחזיר 14
-        "(2 + 3) * 4",     # אמור להחזיר 20
-        "5!",              # אמור להחזיר 120
-        "2 ^ 3",           # אמור להחזיר 8
-        "10 / 2",          # אמור להחזיר 5
-        "5 $ 3",           # אופרטור מקסימום, אמור להחזיר 5
-        "5 & 3",           # אופרטור מינימום, אמור להחזיר 3
-    ]
+    print("Advanced Calculator - Omega Class 2024")
+    print("Enter a mathematical expression to calculate or type 'exit' to quit.")
+    print("Supported operators: +, -, *, /, ^, !, ~, %, &, $, @, (, )")
+    print("Examples: 2 + 3 * 4, (2 + 3) * 4, 5!, 2 ^ 3, 10 / 2, 5 $ 3, 5 & 3, 5 @ 3, ~3 + 5")
 
-    for expr in expressions:
-        result = calculator.calculate(expr)
-        print(f"{expr} = {result}")
+    while True:
+        expression = input("Enter expression: ").strip()
+        if expression.lower() in ('exit', 'quit'):
+            print("Goodbye!")
+            break
+        if not expression:
+            continue  # Ignore empty input
+        result = calculator.calculate(expression)
+        if result is not None:
+            print(f"Result: {result}")
+        else:
+            print("Invalid expression. Please try again.")
+
 
 if __name__ == "__main__":
-    print("בדיקת מחשבון:")
     main()
