@@ -14,6 +14,7 @@ from Operators import (
 )
 from exceptions import InvalidTokenException, InvalidExpressionException
 
+
 class ExpressionParser:
     def __init__(self):
         """
@@ -22,11 +23,11 @@ class ExpressionParser:
         self.operators = {
             '+': AdditionOperator(),
             '-': SubtractionOperator(),
+            'u-': NegationOperator(),  # Unary minus operator
             '*': MultiplicationOperator(),
             '/': DivisionOperator(),
             '^': PowerOperator(),
             '!': FactorialOperator(),
-            '~': NegationOperator(),
             '%': ModuloOperator(),
             '$': MaxOperator(),
             '&': MinOperator(),
@@ -42,13 +43,15 @@ class ExpressionParser:
         :param expression: str, the mathematical expression.
         :return: list, the tokens.
         """
-        # Adjust the token pattern to handle the tilde operator
+        # Remove spaces
+        expression = expression.replace(' ', '')
+
+        # Regular expression to match numbers and operators
         token_pattern = (
-            r'(?<![\w.])~\d+\.?\d*'       # Match tilde followed by a number
-            r'|\d+\.?\d*'                 # Numbers
-            r'|[' + re.escape(''.join(self.operator_symbols - {'~'})) + r'\(\)]'  # Other operators and parentheses
+            r'\d+\.?\d*'  # Match numbers (including decimals)
+            r'|[' + re.escape(''.join(self.operator_symbols)) + r'\(\)]'  # Operators and parentheses
         )
-        tokens = re.findall(token_pattern, expression.replace(' ', ''))
+        tokens = re.findall(token_pattern, expression)
         return tokens
 
     def is_operator(self, token):
@@ -75,17 +78,10 @@ class ExpressionParser:
                 # Numbers go directly to the output queue
                 output_queue.append(float(token))
                 previous_token_type = 'number'
-            elif token.startswith('~'):
-                # Handle the tilde operator immediately before a number
-                number_part = token[1:]
-                if not self.is_number(number_part):
-                    raise InvalidExpressionException(f"Invalid use of '~' operator with '{number_part}'.")
-                # Apply the negation and push the result
-                negated_number = -float(number_part)
-                output_queue.append(negated_number)
-                previous_token_type = 'number'
-            elif self.is_operator(token):
-                # Regular operators
+            elif token in self.operator_symbols:
+                if token == '-' and previous_token_type in (None, 'operator', 'left_parenthesis'):
+                    # Unary minus detected
+                    token = 'u-'
                 o1 = self.operators.get(token)
                 if not o1:
                     raise InvalidTokenException(token)
