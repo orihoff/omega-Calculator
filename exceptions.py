@@ -1,3 +1,5 @@
+# exceptions.py
+
 class CalculatorException(Exception):
     """
     Base class for all calculator-related exceptions.

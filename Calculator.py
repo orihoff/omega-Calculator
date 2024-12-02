@@ -1,5 +1,9 @@
+# calculator.py
+
 from ExpressionParser import ExpressionParser
+from exceptions import CalculatorException
 from Operators import Operator
+
 
 class Calculator:
     def __init__(self):
@@ -25,9 +29,12 @@ class Calculator:
             result = self.evaluate_postfix(postfix)
 
             return result
-        except Exception as e:
+        except CalculatorException as e:
             print(f"Error: {e}")
             return None  # Return None in case of an error
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            return None
 
     def evaluate_postfix(self, postfix):
         """
@@ -39,30 +46,36 @@ class Calculator:
             The result of the calculation.
         """
         stack = []
+        operators = self.parser.operators
 
         for token in postfix:
             if isinstance(token, float):
                 # Operand: Push it onto the stack
                 stack.append(token)
-            elif isinstance(token, str) and token in self.parser.operators:
-                # Operator: Apply it to the top operands on the stack
-                operator = self.parser.operators[token]
+            elif isinstance(token, str) and token in operators:
+                operator = operators[token]
 
-                if operator.symbol == '!':  # Unary operator (factorial)
+                if operator.arity == 1:
+                    if not stack:
+                        raise CalculatorException("Insufficient operands.")
                     operand = stack.pop()
                     result = operator.execute(operand)
-                else:  # Binary operators (e.g., +, -, *, /)
-                    operand2 = stack.pop()  # Correct order: operand2 comes first
+                elif operator.arity == 2:
+                    if len(stack) < 2:
+                        raise CalculatorException("Insufficient operands.")
+                    operand2 = stack.pop()
                     operand1 = stack.pop()
                     result = operator.execute(operand1, operand2)
+                else:
+                    raise CalculatorException(f"Unsupported operator arity: {operator.arity}")
 
                 # Push the result back onto the stack
                 stack.append(result)
             else:
-                raise ValueError(f"Invalid token: {token}")
+                raise CalculatorException(f"Invalid token: {token}")
 
         # The result should be the only item left in the stack
         if len(stack) != 1:
-            raise ValueError("Invalid expression structure.")
+            raise CalculatorException("Invalid expression structure.")
 
         return stack.pop()
