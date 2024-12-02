@@ -29,3 +29,35 @@ class DivisionByZeroException(CalculatorException):
     """
     def __init__(self):
         super().__init__("Division by zero is not allowed.")
+
+
+class ConsecutiveTildesException(CalculatorException):
+    """
+    Raised when consecutive tilde operators are encountered in the expression.
+    """
+    def __init__(self):
+        super().__init__("Consecutive tildes are not allowed in the expression.")
+
+
+class FactorialNegativeNumberException(CalculatorException):
+    """
+    Raised when attempting to calculate the factorial of a negative number.
+    """
+    def __init__(self):
+        super().__init__("Factorial is not defined for negative numbers.")
+
+
+class MissingOperandException(CalculatorException):
+    """
+    Raised when an operator is missing a required operand.
+    """
+    def __init__(self, operator):
+        super().__init__(f"Missing operand for operator: {operator}")
+
+
+class MismatchedParenthesesException(CalculatorException):
+    """
+    Raised when there are mismatched parentheses in the expression.
+    """
+    def __init__(self):
+        super().__init__("Mismatched parentheses in the expression.")
