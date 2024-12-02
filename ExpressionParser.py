@@ -13,7 +13,12 @@ from Operators import (
     MinOperator,
     AverageOperator
 )
-from exceptions import InvalidTokenException, InvalidExpressionException
+from exceptions import (
+    InvalidTokenException,
+    InvalidExpressionException,
+    ConsecutiveTildesException,
+    MismatchedParenthesesException
+)
 
 
 class ExpressionParser:
@@ -87,7 +92,7 @@ class ExpressionParser:
                 # Determine if operator is unary
                 if token == '~':
                     if consecutive_tilde:
-                        raise InvalidExpressionException("Consecutive tildes are not allowed.")
+                        raise ConsecutiveTildesException()
                     consecutive_tilde = True
                 else:
                     # Reset tilde tracker for other operators
@@ -121,7 +126,7 @@ class ExpressionParser:
                 while operator_stack and operator_stack[-1] != self.left_parenthesis:
                     output_queue.append(operator_stack.pop())
                 if not operator_stack:
-                    raise InvalidExpressionException("Mismatched parentheses.")
+                    raise MismatchedParenthesesException()
                 operator_stack.pop()  # Pop the left parenthesis
                 previous_token_type = 'right_parenthesis'
             else:
@@ -131,7 +136,7 @@ class ExpressionParser:
         while operator_stack:
             top = operator_stack.pop()
             if top in (self.left_parenthesis, self.right_parenthesis):
-                raise InvalidExpressionException("Mismatched parentheses.")
+                raise MismatchedParenthesesException()
             output_queue.append(top)
 
         return output_queue
