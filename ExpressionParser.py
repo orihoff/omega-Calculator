@@ -7,6 +7,7 @@ from Operators import (
     PowerOperator,
     FactorialOperator,
     NegationOperator,
+    TildeOperator,
     ModuloOperator,
     MaxOperator,
     MinOperator,
@@ -24,6 +25,7 @@ class ExpressionParser:
             '+': AdditionOperator(),
             '-': SubtractionOperator(),
             'u-': NegationOperator(),  # Unary minus operator
+            '~': TildeOperator(),      # Tilde operator
             '*': MultiplicationOperator(),
             '/': DivisionOperator(),
             '^': PowerOperator(),
@@ -72,16 +74,29 @@ class ExpressionParser:
         output_queue = []
         operator_stack = []
         previous_token_type = None
+        consecutive_tilde = False  # Track consecutive tilde operators
 
         for token in tokens:
             if self.is_number(token):
+                # Reset tilde tracker
+                consecutive_tilde = False
                 # Numbers go directly to the output queue
                 output_queue.append(float(token))
                 previous_token_type = 'number'
             elif token in self.operator_symbols:
-                if token == '-' and previous_token_type in (None, 'operator', 'left_parenthesis'):
-                    # Unary minus detected
-                    token = 'u-'
+                # Determine if operator is unary
+                if token == '~':
+                    if consecutive_tilde:
+                        raise InvalidExpressionException("Consecutive tildes are not allowed.")
+                    consecutive_tilde = True
+                else:
+                    # Reset tilde tracker for other operators
+                    consecutive_tilde = False
+
+                if token in ('-', '~') and previous_token_type in (None, 'operator', 'left_parenthesis'):
+                    # Unary operator
+                    if token == '-':
+                        token = 'u-'  # Unary minus
                 o1 = self.operators.get(token)
                 if not o1:
                     raise InvalidTokenException(token)

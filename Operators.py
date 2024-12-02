@@ -77,21 +77,29 @@ class FactorialOperator(Operator):
     def __init__(self):
         super().__init__('!', 5, 'left', 1)
 
-    def execute(self, operand, _=None):
-        if operand < 0:
+    def execute(self, operand1, operand2=None):
+        if operand1 < 0:
             raise ValueError("Factorial is not defined for negative numbers.")
         result = 1
-        for i in range(1, int(operand) + 1):
+        for i in range(1, int(operand1) + 1):
             result *= i
         return result
 
 
 class NegationOperator(Operator):
     def __init__(self):
-        super().__init__('~', 6, 'right', 1)
+        super().__init__('u-', 6, 'right', 1)  # Unary minus operator
 
-    def execute(self, operand, _=None):
-        return -operand
+    def execute(self, operand1, operand2=None):
+        return -operand1
+
+
+class TildeOperator(Operator):
+    def __init__(self):
+        super().__init__('~', 6, 'right', 1)  # Tilde operator for negation
+
+    def execute(self, operand1, operand2=None):
+        return -operand1
 
 
 class ModuloOperator(Operator):
