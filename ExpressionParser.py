@@ -89,17 +89,18 @@ class ExpressionParser:
                 output_queue.append(float(token))
                 previous_token_type = 'number'
             elif token in self.operator_symbols:
-                # Determine if operator is unary
+                # Check for invalid placement of tilde
                 if token == '~':
+                    if previous_token_type == 'number':
+                        raise InvalidExpressionException("Invalid placement of '~' operator after a number.")
                     if consecutive_tilde:
                         raise ConsecutiveTildesException()
                     consecutive_tilde = True
                 else:
-                    # Reset tilde tracker for other operators
-                    consecutive_tilde = False
+                    consecutive_tilde = False  # Reset for other operators
 
+                # Handle unary operators
                 if token in ('-', '~') and previous_token_type in (None, 'operator', 'left_parenthesis'):
-                    # Unary operator
                     if token == '-':
                         token = 'u-'  # Unary minus
                 o1 = self.operators.get(token)
@@ -120,9 +121,11 @@ class ExpressionParser:
                 operator_stack.append(token)
                 previous_token_type = 'operator'
             elif token == self.left_parenthesis:
+                consecutive_tilde = False  # Reset tilde tracker
                 operator_stack.append(token)
                 previous_token_type = 'left_parenthesis'
             elif token == self.right_parenthesis:
+                consecutive_tilde = False  # Reset tilde tracker
                 while operator_stack and operator_stack[-1] != self.left_parenthesis:
                     output_queue.append(operator_stack.pop())
                 if not operator_stack:
