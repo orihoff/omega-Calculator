@@ -106,3 +106,19 @@ class MismatchedParenthesesException(CalculatorException):
     def generate_error_message(expression, index, message):
         marker = ' ' * index + '^'
         return f"{message}:\n{expression}\n{marker}"
+
+class InvalidCharacterException(CalculatorException):
+    """
+    Raised when an invalid character is encountered in the expression.
+    """
+    def __init__(self, char, expression=None, index=None):
+        if expression and index is not None:
+            error_message = self.generate_error_message(expression, index, f"Invalid character '{char}'")
+        else:
+            error_message = f"Invalid character encountered: {char}"
+        super().__init__(error_message)
+
+    @staticmethod
+    def generate_error_message(expression, index, message):
+        marker = ' ' * index + '^'
+        return f"{message}:\n{expression}\n{marker}"
