@@ -1,7 +1,12 @@
 # calculator.py
 
 from ExpressionParser import ExpressionParser
-from exceptions import CalculatorException, InvalidTokenException, MissingOperandException
+from exceptions import (
+    CalculatorException,
+    InvalidTokenException,
+    MissingOperandException,
+    FactorialNegativeNumberException,
+)
 from Operators import Operator
 
 
@@ -29,10 +34,16 @@ class Calculator:
             result = self.evaluate_postfix(postfix)
 
             return result
+        except FactorialNegativeNumberException as e:
+            # Handle specific exception for negative factorials
+            print(f"Error: {e}")
+            return None
         except CalculatorException as e:
-            print(e)  # Exception already includes the error message and marker
-            return None  # Return None in case of an error
+            # Handle general calculator exceptions
+            print(f"Error: {e}")
+            return None
         except Exception as e:
+            # Handle unexpected errors
             print(f"Unexpected error: {e}")
             return None
 

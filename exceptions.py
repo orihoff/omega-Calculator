@@ -66,14 +66,6 @@ class ConsecutiveTildesException(CalculatorException):
         return f"{message}:\n{expression}\n{marker}"
 
 
-class FactorialNegativeNumberException(CalculatorException):
-    """
-    Raised when attempting to calculate the factorial of a negative number.
-    """
-    def __init__(self):
-        super().__init__("Factorial is not defined for negative numbers.")
-
-
 class MissingOperandException(CalculatorException):
     """
     Raised when an operator is missing a required operand.
@@ -122,3 +114,15 @@ class InvalidCharacterException(CalculatorException):
     def generate_error_message(expression, index, message):
         marker = ' ' * index + '^'
         return f"{message}:\n{expression}\n{marker}"
+
+class FactorialNegativeNumberException(CalculatorException):
+    """
+    Raised when attempting to calculate the factorial of a negative number.
+    """
+    def __init__(self, operand=None):
+        if operand is not None:
+            message = f"Factorial is not defined for negative numbers: {operand}"
+        else:
+            message = "Factorial is not defined for negative numbers."
+        super().__init__(message)
+

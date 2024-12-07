@@ -1,7 +1,7 @@
 # operators.py
 
 from abc import ABC, abstractmethod
-from exceptions import DivisionByZeroException
+from exceptions import DivisionByZeroException, FactorialNegativeNumberException
 
 
 class Operator(ABC):
@@ -79,11 +79,12 @@ class FactorialOperator(Operator):
 
     def execute(self, operand1, operand2=None):
         if operand1 < 0:
-            raise ValueError("Factorial is not defined for negative numbers.")
+            raise FactorialNegativeNumberException()
         result = 1
         for i in range(1, int(operand1) + 1):
             result *= i
         return result
+
 
 
 class NegationOperator(Operator):
