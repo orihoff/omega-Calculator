@@ -157,3 +157,13 @@ class ExpressionParser:
             return True
         except ValueError:
             return False
+
+def mark_error(self, expression, index):
+    """
+    Highlight the position of an error in the expression.
+    :param expression: str, the original mathematical expression.
+    :param index: int, the index of the error in the expression.
+    :return: str, the expression with an error marker.
+    """
+    marker = ' ' * index + '^'  # רווחים עד למיקום השגיאה ואז חץ
+    return f"{expression}\n{marker}"
