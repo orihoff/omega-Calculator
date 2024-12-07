@@ -94,10 +94,23 @@ class ExpressionParser:
                 # Check for invalid placement of tilde
                 if token == '~':
                     if previous_token_type == 'number':
-                        raise InvalidExpressionException("Invalid placement of '~' operator after a number.")
+                        # Find the position of the invalid '~'
+                        error_index = expression.find(token)
+                        # Generate the error message with a pointer
+                        error_message = self.mark_error(expression, error_index)
+                        raise InvalidExpressionException(
+                            f"Invalid placement of '~' operator after a number:\n{error_message}"
+                        )
                     if consecutive_tilde:
-                        raise ConsecutiveTildesException()
+                        # Find the position of the second '~'
+                        error_index = expression.find(token)
+                        # Generate the error message with a pointer
+                        error_message = self.mark_error(expression, error_index)
+                        raise ConsecutiveTildesException(
+                            f"Consecutive '~' operators detected:\n{error_message}"
+                        )
                     consecutive_tilde = True
+
                 else:
                     consecutive_tilde = False  # Reset for other operators
 
