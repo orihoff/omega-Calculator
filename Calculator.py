@@ -1,7 +1,7 @@
 # calculator.py
 
 from ExpressionParser import ExpressionParser
-from exceptions import CalculatorException
+from exceptions import CalculatorException, InvalidTokenException, MissingOperandException
 from Operators import Operator
 
 
@@ -30,7 +30,7 @@ class Calculator:
 
             return result
         except CalculatorException as e:
-            print(f"Error: {e}")
+            print(e)  # Exception already includes the error message and marker
             return None  # Return None in case of an error
         except Exception as e:
             print(f"Unexpected error: {e}")
@@ -57,12 +57,12 @@ class Calculator:
 
                 if operator.arity == 1:
                     if not stack:
-                        raise CalculatorException("Insufficient operands.")
+                        raise MissingOperandException(operator.symbol)
                     operand = stack.pop()
                     result = operator.execute(operand)
                 elif operator.arity == 2:
                     if len(stack) < 2:
-                        raise CalculatorException("Insufficient operands.")
+                        raise MissingOperandException(operator.symbol)
                     operand2 = stack.pop()
                     operand1 = stack.pop()
                     result = operator.execute(operand1, operand2)
@@ -72,7 +72,7 @@ class Calculator:
                 # Push the result back onto the stack
                 stack.append(result)
             else:
-                raise CalculatorException(f"Invalid token: {token}")
+                raise InvalidTokenException(token)
 
         # The result should be the only item left in the stack
         if len(stack) != 1:

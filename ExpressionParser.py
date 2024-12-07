@@ -21,6 +21,8 @@ from exceptions import (
     ConsecutiveTildesException,
     MismatchedParenthesesException
 )
+
+
 class ExpressionParser:
     def __init__(self):
         """
@@ -77,11 +79,7 @@ class ExpressionParser:
         """
         # Check for empty or whitespace-only expressions
         if not expression.strip():
-            # Generate the error message with an empty marker
-            error_message = self.mark_error(expression, 0) if expression else "(empty expression)"
-            raise InvalidExpressionException(
-                f"Invalid expression detected:\n{error_message}"
-            )
+            raise InvalidExpressionException("Expression cannot be empty or whitespace only.", expression, 0)
 
         tokens = self.tokenize(expression)
         output_queue = []
@@ -100,21 +98,13 @@ class ExpressionParser:
                 # Check for invalid placement of tilde
                 if token == '~':
                     if previous_token_type == 'number':
-                        # Find the position of the invalid '~'
                         error_index = expression.find(token)
-                        # Generate the error message with a pointer
-                        error_message = self.mark_error(expression, error_index)
                         raise InvalidExpressionException(
-                            f"Invalid placement of '~' operator after a number:\n{error_message}"
+                            "Invalid placement of '~' operator after a number.", expression, error_index
                         )
                     if consecutive_tilde:
-                        # Find the position of the second '~'
                         error_index = expression.find(token)
-                        # Generate the error message with a pointer
-                        error_message = self.mark_error(expression, error_index)
-                        raise ConsecutiveTildesException(
-                            f"Consecutive '~' operators detected:\n{error_message}"
-                        )
+                        raise ConsecutiveTildesException(expression, error_index)
                     consecutive_tilde = True
 
                 else:
@@ -126,7 +116,9 @@ class ExpressionParser:
                         token = 'u-'  # Unary minus
                 o1 = self.operators.get(token)
                 if not o1:
-                    raise InvalidTokenException(token)
+                    error_index = expression.find(token)
+                    raise InvalidTokenException(token, expression, error_index)
+
                 while operator_stack:
                     top = operator_stack[-1]
                     if top == self.left_parenthesis:
@@ -150,38 +142,20 @@ class ExpressionParser:
                 while operator_stack and operator_stack[-1] != self.left_parenthesis:
                     output_queue.append(operator_stack.pop())
                 if not operator_stack:
-                    # Find the position of the problematic parenthesis
-                    error_index = expression.rfind(token)  # Use rfind to catch the unmatched ')'
-                    error_message = self.mark_error(expression, error_index)
-                    raise MismatchedParenthesesException(
-                        f"Mismatched parentheses detected:\n{error_message}"
-                    )
+                    error_index = expression.rfind(token)
+                    raise MismatchedParenthesesException(expression, error_index)
                 operator_stack.pop()  # Pop the left parenthesis
                 previous_token_type = 'right_parenthesis'
             else:
-                # Find all positions of the invalid token
-                token_positions = [m.start() for m in re.finditer(re.escape(token), expression)]
-
-                # Use the first occurrence for simplicity
-                if token_positions:
-                    error_index = token_positions[0]
-                else:
-                    error_index = -1  # Fallback in case token is not found (shouldn't happen)
-
-                # Generate the error message with a pointer
-                if error_index >= 0:
-                    error_message = self.mark_error(expression, error_index)
-                    raise InvalidTokenException(
-                        f"Invalid token '{token}':\n{error_message}"
-                    )
-                else:
-                    raise InvalidTokenException(f"Invalid token '{token}' detected.")
+                error_index = expression.find(token)
+                raise InvalidTokenException(token, expression, error_index)
 
         # Pop all remaining operators
         while operator_stack:
             top = operator_stack.pop()
             if top in (self.left_parenthesis, self.right_parenthesis):
-                raise MismatchedParenthesesException()
+                error_index = expression.rfind(top)
+                raise MismatchedParenthesesException(expression, error_index)
             output_queue.append(top)
 
         return output_queue
