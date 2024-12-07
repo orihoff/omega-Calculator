@@ -20,9 +20,9 @@ from exceptions import (
     InvalidExpressionException,
     ConsecutiveTildesException,
     MismatchedParenthesesException,
-    MissingOperandException
+    MissingOperandException,
+    InvalidCharacterException
 )
-
 
 
 class ExpressionParser:
@@ -61,6 +61,7 @@ class ExpressionParser:
         token_pattern = (
             r'\d+\.?\d*'  # Match numbers (including decimals)
             r'|[' + re.escape(''.join(self.operator_symbols)) + r'\(\)]'  # Operators and parentheses
+            r'|.'  # Match any single character (to catch invalid characters)
         )
         tokens = re.findall(token_pattern, expression)
         return tokens
@@ -99,14 +100,12 @@ class ExpressionParser:
             elif token in self.operator_symbols:
                 # Check for invalid consecutive operators (e.g., 4++4)
                 if previous_token_type == 'operator':
-                    # Find the exact index of the current operator
                     operator_index = expression.find(token, expression.find(token) + 1)
                     raise InvalidExpressionException(
                         f"Consecutive operators are not allowed: '{token}' after another operator.",
                         expression,
                         operator_index
                     )
-
 
                 # Check for invalid placement of tilde
                 if token == '~':
@@ -164,8 +163,17 @@ class ExpressionParser:
                 operator_stack.pop()  # Pop the left parenthesis
                 previous_token_type = 'right_parenthesis'
             else:
-                error_index = expression.find(token)
-                raise InvalidTokenException(token, expression, error_index)
+                # Handle invalid characters
+                if not (self.is_operator(token) or self.is_number(token) or token in (self.left_parenthesis, self.right_parenthesis)):
+                    error_index = expression.find(token)
+                    raise InvalidCharacterException(
+                        char=token,
+                        expression=expression,
+                        index=error_index
+                    )
+                else:
+                    error_index = expression.find(token)
+                    raise InvalidTokenException(token, expression, error_index)
 
         # Check for trailing operators (e.g., 3-)
         if previous_token_type == 'operator':
