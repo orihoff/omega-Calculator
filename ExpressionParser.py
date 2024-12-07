@@ -21,8 +21,6 @@ from exceptions import (
     ConsecutiveTildesException,
     MismatchedParenthesesException
 )
-
-
 class ExpressionParser:
     def __init__(self):
         """
@@ -148,21 +146,19 @@ class ExpressionParser:
                 operator_stack.append(token)
                 previous_token_type = 'left_parenthesis'
             elif token == self.right_parenthesis:
-                consecutive_tilde = False
+                consecutive_tilde = False  # Reset tilde tracker
                 while operator_stack and operator_stack[-1] != self.left_parenthesis:
                     output_queue.append(operator_stack.pop())
                 if not operator_stack:
                     # Find the position of the problematic parenthesis
-                    error_index = expression.find(token)
-                    # Generate the error message with a pointer
+                    error_index = expression.rfind(token)  # Use rfind to catch the unmatched ')'
                     error_message = self.mark_error(expression, error_index)
                     raise MismatchedParenthesesException(
                         f"Mismatched parentheses detected:\n{error_message}"
                     )
                 operator_stack.pop()  # Pop the left parenthesis
                 previous_token_type = 'right_parenthesis'
-
-        else:
+            else:
                 # Find all positions of the invalid token
                 token_positions = [m.start() for m in re.finditer(re.escape(token), expression)]
 
@@ -202,16 +198,15 @@ class ExpressionParser:
         except ValueError:
             return False
 
+    def mark_error(self, expression, index):
+        """
+        Highlight the position of an error in the expression.
+        :param expression: str, the original mathematical expression.
+        :param index: int, the index of the error in the expression.
+        :return: str, the expression with an error marker.
+        """
+        if index < 0 or index >= len(expression):
+            raise ValueError("Error index is out of bounds.")
 
-def mark_error(self, expression, index):
-    """
-    Highlight the position of an error in the expression.
-    :param expression: str, the original mathematical expression.
-    :param index: int, the index of the error in the expression.
-    :return: str, the expression with an error marker.
-    """
-    if index < 0 or index >= len(expression):
-        raise ValueError("Error index is out of bounds.")
-
-    marker = ' ' * index + '^'
-    return f"{expression}\n{marker}"
+        marker = ' ' * index + '^'
+        return f"{expression}\n{marker}"
