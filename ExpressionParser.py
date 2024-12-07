@@ -135,7 +135,13 @@ class ExpressionParser:
                 operator_stack.pop()  # Pop the left parenthesis
                 previous_token_type = 'right_parenthesis'
             else:
-                raise InvalidTokenException(token)
+                # Find the position of the invalid token
+                error_index = expression.find(token)
+                # Generate the error message with a pointer
+                error_message = self.mark_error(expression, error_index)
+                raise InvalidTokenException(
+                    f"Invalid token '{token}':\n{error_message}"
+                )
 
         # Pop all remaining operators
         while operator_stack:
