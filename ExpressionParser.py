@@ -79,7 +79,12 @@ class ExpressionParser:
         """
         # Check for empty or whitespace-only expressions
         if not expression.strip():
-            raise InvalidExpressionException("Expression cannot be empty or whitespace only.")
+            # Generate the error message with an empty marker
+            error_message = self.mark_error(expression, 0) if expression else "(empty expression)"
+            raise InvalidExpressionException(
+                f"Invalid expression detected:\n{error_message}"
+            )
+
         tokens = self.tokenize(expression)
         output_queue = []
         operator_stack = []
@@ -143,14 +148,21 @@ class ExpressionParser:
                 operator_stack.append(token)
                 previous_token_type = 'left_parenthesis'
             elif token == self.right_parenthesis:
-                consecutive_tilde = False  # Reset tilde tracker
+                consecutive_tilde = False
                 while operator_stack and operator_stack[-1] != self.left_parenthesis:
                     output_queue.append(operator_stack.pop())
                 if not operator_stack:
-                    raise MismatchedParenthesesException()
+                    # Find the position of the problematic parenthesis
+                    error_index = expression.find(token)
+                    # Generate the error message with a pointer
+                    error_message = self.mark_error(expression, error_index)
+                    raise MismatchedParenthesesException(
+                        f"Mismatched parentheses detected:\n{error_message}"
+                    )
                 operator_stack.pop()  # Pop the left parenthesis
                 previous_token_type = 'right_parenthesis'
-            else:
+
+        else:
                 # Find all positions of the invalid token
                 token_positions = [m.start() for m in re.finditer(re.escape(token), expression)]
 
