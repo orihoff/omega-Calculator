@@ -19,8 +19,10 @@ from exceptions import (
     InvalidTokenException,
     InvalidExpressionException,
     ConsecutiveTildesException,
-    MismatchedParenthesesException
+    MismatchedParenthesesException,
+    MissingOperandException
 )
+
 
 
 class ExpressionParser:
@@ -87,7 +89,7 @@ class ExpressionParser:
         previous_token_type = None
         consecutive_tilde = False  # Track consecutive tilde operators
 
-        for token in tokens:
+        for i, token in enumerate(tokens):
             if self.is_number(token):
                 # Reset tilde tracker
                 consecutive_tilde = False
@@ -95,6 +97,17 @@ class ExpressionParser:
                 output_queue.append(float(token))
                 previous_token_type = 'number'
             elif token in self.operator_symbols:
+                # Check for invalid consecutive operators (e.g., 4++4)
+                if previous_token_type == 'operator':
+                    # Find the exact index of the current operator
+                    operator_index = expression.find(token, expression.find(token) + 1)
+                    raise InvalidExpressionException(
+                        f"Consecutive operators are not allowed: '{token}' after another operator.",
+                        expression,
+                        operator_index
+                    )
+
+
                 # Check for invalid placement of tilde
                 if token == '~':
                     if previous_token_type == 'number':
@@ -106,7 +119,6 @@ class ExpressionParser:
                         error_index = expression.find(token)
                         raise ConsecutiveTildesException(expression, error_index)
                     consecutive_tilde = True
-
                 else:
                     consecutive_tilde = False  # Reset for other operators
 
@@ -127,7 +139,7 @@ class ExpressionParser:
                     if not o2:
                         break
                     if (o1.associativity == 'left' and o1.precedence <= o2.precedence) or \
-                       (o1.associativity == 'right' and o1.precedence < o2.precedence):
+                            (o1.associativity == 'right' and o1.precedence < o2.precedence):
                         output_queue.append(operator_stack.pop())
                     else:
                         break
@@ -139,6 +151,11 @@ class ExpressionParser:
                 previous_token_type = 'left_parenthesis'
             elif token == self.right_parenthesis:
                 consecutive_tilde = False  # Reset tilde tracker
+                if previous_token_type == 'left_parenthesis':
+                    error_index = expression.find(token)
+                    raise InvalidExpressionException(
+                        "Empty parentheses are not allowed.", expression, error_index
+                    )
                 while operator_stack and operator_stack[-1] != self.left_parenthesis:
                     output_queue.append(operator_stack.pop())
                 if not operator_stack:
@@ -149,6 +166,11 @@ class ExpressionParser:
             else:
                 error_index = expression.find(token)
                 raise InvalidTokenException(token, expression, error_index)
+
+        # Check for trailing operators (e.g., 3-)
+        if previous_token_type == 'operator':
+            error_index = expression.rfind(tokens[-1])
+            raise MissingOperandException(tokens[-1], expression, error_index)
 
         # Pop all remaining operators
         while operator_stack:
