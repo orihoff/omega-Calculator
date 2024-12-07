@@ -77,6 +77,9 @@ class ExpressionParser:
         :param expression: str, the infix expression.
         :return: list, the postfix notation tokens.
         """
+        # Check for empty or whitespace-only expressions
+        if not expression.strip():
+            raise InvalidExpressionException("Expression cannot be empty or whitespace only.")
         tokens = self.tokenize(expression)
         output_queue = []
         operator_stack = []
