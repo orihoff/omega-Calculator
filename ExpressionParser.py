@@ -151,13 +151,23 @@ class ExpressionParser:
                 operator_stack.pop()  # Pop the left parenthesis
                 previous_token_type = 'right_parenthesis'
             else:
-                # Find the position of the invalid token
-                error_index = expression.find(token)
+                # Find all positions of the invalid token
+                token_positions = [m.start() for m in re.finditer(re.escape(token), expression)]
+
+                # Use the first occurrence for simplicity
+                if token_positions:
+                    error_index = token_positions[0]
+                else:
+                    error_index = -1  # Fallback in case token is not found (shouldn't happen)
+
                 # Generate the error message with a pointer
-                error_message = self.mark_error(expression, error_index)
-                raise InvalidTokenException(
-                    f"Invalid token '{token}':\n{error_message}"
-                )
+                if error_index >= 0:
+                    error_message = self.mark_error(expression, error_index)
+                    raise InvalidTokenException(
+                        f"Invalid token '{token}':\n{error_message}"
+                    )
+                else:
+                    raise InvalidTokenException(f"Invalid token '{token}' detected.")
 
         # Pop all remaining operators
         while operator_stack:
@@ -180,6 +190,7 @@ class ExpressionParser:
         except ValueError:
             return False
 
+
 def mark_error(self, expression, index):
     """
     Highlight the position of an error in the expression.
@@ -187,5 +198,8 @@ def mark_error(self, expression, index):
     :param index: int, the index of the error in the expression.
     :return: str, the expression with an error marker.
     """
-    marker = ' ' * index + '^'  # רווחים עד למיקום השגיאה ואז חץ
+    if index < 0 or index >= len(expression):
+        raise ValueError("Error index is out of bounds.")
+
+    marker = ' ' * index + '^'
     return f"{expression}\n{marker}"
