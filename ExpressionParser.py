@@ -80,7 +80,6 @@ class ExpressionParser:
         :param expression: str, the infix expression.
         :return: list, the postfix notation tokens.
         """
-        # Check for empty or whitespace-only expressions
         if not expression.strip():
             raise InvalidExpressionException("Expression cannot be empty or whitespace only.", expression, 0)
 
@@ -88,47 +87,60 @@ class ExpressionParser:
         output_queue = []
         operator_stack = []
         previous_token_type = None
-        consecutive_tilde = False  # Track consecutive tilde operators
+        consecutive_tilde = False
+
+        current_position = 0  # Track position within the expression
 
         for i, token in enumerate(tokens):
+            token_position = expression.find(token, current_position)
+            current_position = token_position + len(token)
+
             if self.is_number(token):
-                # Reset tilde tracker
                 consecutive_tilde = False
-                # Numbers go directly to the output queue
                 output_queue.append(float(token))
                 previous_token_type = 'number'
             elif token in self.operator_symbols:
-                # Check for invalid consecutive operators (e.g., 4++4)
-                if previous_token_type == 'operator':
-                    operator_index = expression.find(token, expression.find(token) + 1)
+                # Handle consecutive operators, excluding factorial
+                if previous_token_type == 'operator' and token != '!':
                     raise InvalidExpressionException(
                         f"Consecutive operators are not allowed: '{token}' after another operator.",
                         expression,
-                        operator_index
+                        token_position
                     )
 
-                # Check for invalid placement of tilde
+                # Factorial must follow a number or a closing parenthesis
+                if token == '!' and previous_token_type not in ('number', 'right_parenthesis'):
+                    raise InvalidExpressionException(
+                        "Factorial ('!') must follow a number or a closing parenthesis.",
+                        expression,
+                        token_position
+                    )
+
                 if token == '~':
                     if previous_token_type == 'number':
-                        error_index = expression.find(token)
                         raise InvalidExpressionException(
-                            "Invalid placement of '~' operator after a number.", expression, error_index
+                            "Invalid placement of '~' operator after a number.", expression, token_position
                         )
                     if consecutive_tilde:
-                        error_index = expression.find(token)
-                        raise ConsecutiveTildesException(expression, error_index)
+                        raise ConsecutiveTildesException(expression, token_position)
                     consecutive_tilde = True
                 else:
-                    consecutive_tilde = False  # Reset for other operators
+                    consecutive_tilde = False
 
-                # Handle unary operators
+                # Handle unary minus and tilde
                 if token in ('-', '~') and previous_token_type in (None, 'operator', 'left_parenthesis'):
                     if token == '-':
-                        token = 'u-'  # Unary minus
+                        token = 'u-'
+
                 o1 = self.operators.get(token)
                 if not o1:
-                    error_index = expression.find(token)
-                    raise InvalidTokenException(token, expression, error_index)
+                    raise InvalidTokenException(token, expression, token_position)
+
+                # Ensure factorial does not interfere with following operators
+                if token == '!':
+                    output_queue.append(token)
+                    previous_token_type = 'factorial'
+                    continue
 
                 while operator_stack:
                     top = operator_stack[-1]
@@ -145,47 +157,41 @@ class ExpressionParser:
                 operator_stack.append(token)
                 previous_token_type = 'operator'
             elif token == self.left_parenthesis:
-                consecutive_tilde = False  # Reset tilde tracker
+                consecutive_tilde = False
                 operator_stack.append(token)
                 previous_token_type = 'left_parenthesis'
             elif token == self.right_parenthesis:
-                consecutive_tilde = False  # Reset tilde tracker
+                consecutive_tilde = False
                 if previous_token_type == 'left_parenthesis':
-                    error_index = expression.find(token)
                     raise InvalidExpressionException(
-                        "Empty parentheses are not allowed.", expression, error_index
+                        "Empty parentheses are not allowed.", expression, token_position
                     )
                 while operator_stack and operator_stack[-1] != self.left_parenthesis:
                     output_queue.append(operator_stack.pop())
                 if not operator_stack:
-                    error_index = expression.rfind(token)
-                    raise MismatchedParenthesesException(expression, error_index)
-                operator_stack.pop()  # Pop the left parenthesis
+                    raise MismatchedParenthesesException(expression, token_position)
+                operator_stack.pop()
                 previous_token_type = 'right_parenthesis'
             else:
-                # Handle invalid characters
-                if not (self.is_operator(token) or self.is_number(token) or token in (self.left_parenthesis, self.right_parenthesis)):
-                    error_index = expression.find(token)
+                if not (self.is_operator(token) or self.is_number(token) or token in (
+                        self.left_parenthesis, self.right_parenthesis)):
                     raise InvalidCharacterException(
                         char=token,
                         expression=expression,
-                        index=error_index
+                        index=token_position
                     )
                 else:
-                    error_index = expression.find(token)
-                    raise InvalidTokenException(token, expression, error_index)
+                    raise InvalidTokenException(token, expression, token_position)
 
-        # Check for trailing operators (e.g., 3-)
-        if previous_token_type == 'operator':
-            error_index = expression.rfind(tokens[-1])
-            raise MissingOperandException(tokens[-1], expression, error_index)
+        if previous_token_type == 'operator' and operator_stack[-1] != '!':
+            last_token = tokens[-1]
+            last_position = expression.rfind(last_token)
+            raise MissingOperandException(last_token, expression, last_position)
 
-        # Pop all remaining operators
         while operator_stack:
             top = operator_stack.pop()
             if top in (self.left_parenthesis, self.right_parenthesis):
-                error_index = expression.rfind(top)
-                raise MismatchedParenthesesException(expression, error_index)
+                raise MismatchedParenthesesException(expression, current_position)
             output_queue.append(top)
 
         return output_queue

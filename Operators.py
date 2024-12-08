@@ -86,7 +86,6 @@ class FactorialOperator(Operator):
         return result
 
 
-
 class NegationOperator(Operator):
     def __init__(self):
         super().__init__('u-', 6, 'right', 1)  # Unary minus operator
@@ -115,7 +114,7 @@ class ModuloOperator(Operator):
 
 class MaxOperator(Operator):
     def __init__(self):
-        super().__init__('$', 1, 'left', 2)
+        super().__init__('$', 5, 'left', 2)
 
     def execute(self, operand1, operand2):
         return max(operand1, operand2)
@@ -123,7 +122,7 @@ class MaxOperator(Operator):
 
 class MinOperator(Operator):
     def __init__(self):
-        super().__init__('&', 1, 'left', 2)
+        super().__init__('&', 5, 'left', 2)
 
     def execute(self, operand1, operand2):
         return min(operand1, operand2)
@@ -131,7 +130,7 @@ class MinOperator(Operator):
 
 class AverageOperator(Operator):
     def __init__(self):
-        super().__init__('@', 1, 'left', 2)
+        super().__init__('@', 5, 'left', 2)
 
     def execute(self, operand1, operand2):
         return (operand1 + operand2) / 2
