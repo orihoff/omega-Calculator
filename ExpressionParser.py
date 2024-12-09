@@ -1,5 +1,3 @@
-# ExpressionParser.py
-
 import re
 from Operators import (
     AdditionOperator,
@@ -102,11 +100,15 @@ class ExpressionParser:
             elif token in self.operator_symbols:
                 # Handle consecutive operators, excluding factorial
                 if previous_token_type == 'operator' and token != '!':
-                    raise InvalidExpressionException(
-                        f"Consecutive operators are not allowed: '{token}' after another operator.",
-                        expression,
-                        token_position
-                    )
+                    # Allow unary operators after another operator
+                    if token == '-':
+                        token = 'u-'
+                    else:
+                        raise InvalidExpressionException(
+                            f"Consecutive operators are not allowed: '{token}' after another operator.",
+                            expression,
+                            token_position
+                        )
 
                 # Factorial must follow a number or a closing parenthesis
                 if token == '!' and previous_token_type not in ('number', 'right_parenthesis'):
