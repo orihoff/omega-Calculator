@@ -88,7 +88,7 @@ class FactorialOperator(Operator):
 
 class NegationOperator(Operator):
     def __init__(self):
-        super().__init__('u-', 6, 'right', 1)  # Unary minus operator
+        super().__init__('u-', 3, 'right', 1)  # Unary minus operator
 
     def execute(self, operand1, operand2=None):
         return -operand1
