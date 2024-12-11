@@ -32,7 +32,7 @@ class ExpressionParser:
             '+': AdditionOperator(),
             '-': SubtractionOperator(),
             'u-': NegationOperator(),  # Unary minus operator
-            '~': TildeOperator(),      # Tilde operator
+            '~': TildeOperator(),      # Tilde operator (לא נשתמש בו כי אנחנו הופכים ~ ל-u-)
             '*': MultiplicationOperator(),
             '/': DivisionOperator(),
             '^': PowerOperator(),
@@ -103,6 +103,9 @@ class ExpressionParser:
                     # Allow unary operators after another operator
                     if token == '-':
                         token = 'u-'
+                    elif token == '~':
+                        # במקום להתמודד עם טילדה כאופרטור נפרד, נחיל מינוס יונארי
+                        token = 'u-'
                     else:
                         raise InvalidExpressionException(
                             f"Consecutive operators are not allowed: '{token}' after another operator.",
@@ -131,8 +134,8 @@ class ExpressionParser:
 
                 # Handle unary minus and tilde
                 if token in ('-', '~') and previous_token_type in (None, 'operator', 'left_parenthesis'):
-                    if token == '-':
-                        token = 'u-'
+                    # כל פעם שטילדה יכולה להיות יונארית, נהפוך אותה למינוס יונארי
+                    token = 'u-'
 
                 o1 = self.operators.get(token)
                 if not o1:
@@ -185,7 +188,7 @@ class ExpressionParser:
                 else:
                     raise InvalidTokenException(token, expression, token_position)
 
-        if previous_token_type == 'operator' and operator_stack[-1] != '!':
+        if previous_token_type == 'operator' and operator_stack and operator_stack[-1] != '!':
             last_token = tokens[-1]
             last_position = expression.rfind(last_token)
             raise MissingOperandException(last_token, expression, last_position)
