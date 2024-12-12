@@ -75,7 +75,7 @@ class PowerOperator(Operator):
 
 class FactorialOperator(Operator):
     def __init__(self):
-        super().__init__('!', 5, 'left', 1)
+        super().__init__('!', 6, 'left', 1)
 
     def execute(self, operand1, operand2=None):
         if operand1 < 0:
@@ -96,7 +96,7 @@ class NegationOperator(Operator):
 
 class TildeOperator(Operator):
     def __init__(self):
-        super().__init__('~', 6, 'right', 1)  # Tilde operator for negation
+        super().__init__('~', 7, 'right', 1)  # Tilde operator for negation
 
     def execute(self, operand1, operand2=None):
         return -operand1
