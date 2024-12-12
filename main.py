@@ -6,8 +6,8 @@ def main():
     calculator = Calculator()
     print("Advanced Calculator - Omega Class 2024")
     print("Enter a mathematical expression to calculate or type 'exit' to quit.")
-    print("Supported operators: +, -, *, /, ^, !, ~, %, &, $, @, (, )")
-    print("Examples: 2 + 3 * 4, (2 + 3) * 4, 5!, 2 ^ 3, 10 / 2, 5 $ 3, 5 & 3, 5 @ 3, ~3 + 5")
+    print("Supported operators: +, -, *, /, ^, !, ~, %, &, $, @, #, (, )")
+    print("Examples: 2 + 3 * 4, (2 + 3) * 4, 5!, 2 ^ 3, 10 / 2, 5 $ 3, 5 & 3, 5 @ 3, ~3 + 5, 123#")
 
     while True:
         expression = input("Enter expression: ").strip()

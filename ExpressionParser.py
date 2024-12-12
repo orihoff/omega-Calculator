@@ -11,7 +11,8 @@ from Operators import (
     ModuloOperator,
     MaxOperator,
     MinOperator,
-    AverageOperator
+    AverageOperator,
+    DigitSumOperator
 )
 from exceptions import (
     InvalidTokenException,
@@ -21,7 +22,6 @@ from exceptions import (
     MissingOperandException,
     InvalidCharacterException
 )
-
 
 class ExpressionParser:
     def __init__(self):
@@ -42,6 +42,7 @@ class ExpressionParser:
             '$': MaxOperator(),
             '&': MinOperator(),
             '@': AverageOperator(),
+            '#': DigitSumOperator(),  # Adding the DigitSumOperator
         }
         self.operator_symbols = set(self.operators.keys())
         self.left_parenthesis = '('
@@ -117,10 +118,11 @@ class ExpressionParser:
                 if not o1:
                     raise InvalidTokenException(token, expression, token_position)
 
-                if token == '!':
+                # Handle factorial (`!`) and digit sum (`#`) separately
+                if token in ('!', '#'):
                     if previous_token_type != 'number':
                         raise InvalidExpressionException(
-                            "Factorial ('!') must follow a number.",
+                            f"Operator '{token}' must follow a number.",
                             expression,
                             token_position
                         )
@@ -132,7 +134,7 @@ class ExpressionParser:
                         else:
                             break
                     output_queue.append(token)
-                    previous_token_type = 'factorial'
+                    previous_token_type = 'operator'
                     continue
 
                 while operator_stack:
