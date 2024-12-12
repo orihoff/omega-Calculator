@@ -32,7 +32,8 @@ class ExpressionParser:
             '+': AdditionOperator(),
             '-': SubtractionOperator(),
             'u-': NegationOperator(),  # Unary minus operator
-            '~': TildeOperator(),      # Tilde operator (לא נשתמש בו כי אנחנו הופכים ~ ל-u-)
+            '~': TildeOperator(),      # Tilde operator
+            'u~': TildeOperator(),     # Unary tilde operator
             '*': MultiplicationOperator(),
             '/': DivisionOperator(),
             '^': PowerOperator(),
@@ -85,7 +86,6 @@ class ExpressionParser:
         output_queue = []
         operator_stack = []
         previous_token_type = None
-        consecutive_tilde = False
 
         current_position = 0  # Track position within the expression
 
@@ -94,55 +94,43 @@ class ExpressionParser:
             current_position = token_position + len(token)
 
             if self.is_number(token):
-                consecutive_tilde = False
                 output_queue.append(float(token))
                 previous_token_type = 'number'
             elif token in self.operator_symbols:
-                # Handle consecutive operators, excluding factorial
-                if previous_token_type == 'operator' and token != '!':
-                    # Allow unary operators after another operator
-                    if token == '-':
-                        token = 'u-'
-                    elif token == '~':
-                        # במקום להתמודד עם טילדה כאופרטור נפרד, נחיל מינוס יונארי
-                        token = 'u-'
-                    else:
-                        raise InvalidExpressionException(
-                            f"Consecutive operators are not allowed: '{token}' after another operator.",
-                            expression,
-                            token_position
-                        )
-
-                # Factorial must follow a number or a closing parenthesis
-                if token == '!' and previous_token_type not in ('number', 'right_parenthesis'):
-                    raise InvalidExpressionException(
-                        "Factorial ('!') must follow a number or a closing parenthesis.",
-                        expression,
-                        token_position
-                    )
-
-                if token == '~':
-                    if previous_token_type == 'number':
-                        raise InvalidExpressionException(
-                            "Invalid placement of '~' operator after a number.", expression, token_position
-                        )
-                    if consecutive_tilde:
+                if token == '~' and previous_token_type in ('operator', None):
+                    # Check for consecutive tildes
+                    if operator_stack and operator_stack[-1] in ('u~', '~'):
                         raise ConsecutiveTildesException(expression, token_position)
-                    consecutive_tilde = True
-                else:
-                    consecutive_tilde = False
 
-                # Handle unary minus and tilde
+                    token = 'u~'
+                    operator_stack.append(token)
+                    previous_token_type = 'operator'
+                    continue
+
                 if token in ('-', '~') and previous_token_type in (None, 'operator', 'left_parenthesis'):
-                    # כל פעם שטילדה יכולה להיות יונארית, נהפוך אותה למינוס יונארי
-                    token = 'u-'
+                    token = 'u-' if token == '-' else 'u~'
+                    operator_stack.append(token)
+                    previous_token_type = 'operator'
+                    continue
 
                 o1 = self.operators.get(token)
                 if not o1:
                     raise InvalidTokenException(token, expression, token_position)
 
-                # Ensure factorial does not interfere with following operators
                 if token == '!':
+                    if previous_token_type != 'number':
+                        raise InvalidExpressionException(
+                            "Factorial ('!') must follow a number.",
+                            expression,
+                            token_position
+                        )
+                    while operator_stack and operator_stack[-1] not in ('(', ')'):
+                        top = operator_stack[-1]
+                        o2 = self.operators.get(top)
+                        if o2 and o2.precedence > o1.precedence:
+                            output_queue.append(operator_stack.pop())
+                        else:
+                            break
                     output_queue.append(token)
                     previous_token_type = 'factorial'
                     continue
@@ -162,11 +150,9 @@ class ExpressionParser:
                 operator_stack.append(token)
                 previous_token_type = 'operator'
             elif token == self.left_parenthesis:
-                consecutive_tilde = False
                 operator_stack.append(token)
                 previous_token_type = 'left_parenthesis'
             elif token == self.right_parenthesis:
-                consecutive_tilde = False
                 if previous_token_type == 'left_parenthesis':
                     raise InvalidExpressionException(
                         "Empty parentheses are not allowed.", expression, token_position
@@ -177,21 +163,13 @@ class ExpressionParser:
                     raise MismatchedParenthesesException(expression, token_position)
                 operator_stack.pop()
                 previous_token_type = 'right_parenthesis'
+            elif token in ('u-', 'u~'):
+                if previous_token_type in ('number', 'right_parenthesis'):
+                    raise MissingOperandException("Missing operand for operator: {}".format(token), expression, token_position)
+                operator_stack.append(token)
+                previous_token_type = 'operator'
             else:
-                if not (self.is_operator(token) or self.is_number(token) or token in (
-                        self.left_parenthesis, self.right_parenthesis)):
-                    raise InvalidCharacterException(
-                        char=token,
-                        expression=expression,
-                        index=token_position
-                    )
-                else:
-                    raise InvalidTokenException(token, expression, token_position)
-
-        if previous_token_type == 'operator' and operator_stack and operator_stack[-1] != '!':
-            last_token = tokens[-1]
-            last_position = expression.rfind(last_token)
-            raise MissingOperandException(last_token, expression, last_position)
+                raise InvalidTokenException(token, expression, token_position)
 
         while operator_stack:
             top = operator_stack.pop()

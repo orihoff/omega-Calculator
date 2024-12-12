@@ -1,5 +1,3 @@
-# operators.py
-
 from abc import ABC, abstractmethod
 from exceptions import DivisionByZeroException, FactorialNegativeNumberException
 
@@ -75,7 +73,9 @@ class PowerOperator(Operator):
 
 class FactorialOperator(Operator):
     def __init__(self):
-        super().__init__('!', 6, 'left', 1)
+        # עצרת עם קדימות נמוכה מטילדה
+        # לדוגמה: ! עם קדימות 5, אסוציאטיביות שמאלה
+        super().__init__('!', 5, 'left', 1)
 
     def execute(self, operand1, operand2=None):
         if operand1 < 0:
@@ -96,7 +96,8 @@ class NegationOperator(Operator):
 
 class TildeOperator(Operator):
     def __init__(self):
-        super().__init__('~', 7, 'right', 1)  # Tilde operator for negation
+        # טילדה עם קדימות 7 (גבוהה משל !)
+        super().__init__('~', 7, 'right', 1)
 
     def execute(self, operand1, operand2=None):
         return -operand1
