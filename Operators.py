@@ -135,3 +135,19 @@ class AverageOperator(Operator):
 
     def execute(self, operand1, operand2):
         return (operand1 + operand2) / 2
+
+
+class DigitSumOperator(Operator):
+    def __init__(self):
+        super().__init__('#', 6, 'right', 1)  # Precedence 6, unary operator, right associativity
+
+    def execute(self, operand1, operand2=None):
+        if operand1 < 0:
+            # Handle negative numbers
+            operand1 = abs(operand1)
+            digit_sum = sum(int(digit) for digit in str(operand1) if digit.isdigit())
+            return -digit_sum
+        else:
+            # Handle positive numbers
+            digit_sum = sum(int(digit) for digit in str(operand1) if digit.isdigit())
+            return digit_sum
