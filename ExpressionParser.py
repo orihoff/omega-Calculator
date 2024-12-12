@@ -120,9 +120,9 @@ class ExpressionParser:
 
                 # Handle factorial (`!`) and digit sum (`#`) separately
                 if token in ('!', '#'):
-                    if previous_token_type != 'number':
+                    if previous_token_type != 'number' and previous_token_type != 'right_parenthesis':
                         raise InvalidExpressionException(
-                            f"Operator '{token}' must follow a number.",
+                            f"Operator '{token}' must follow a number or a closing parenthesis.",
                             expression,
                             token_position
                         )
@@ -133,8 +133,8 @@ class ExpressionParser:
                             output_queue.append(operator_stack.pop())
                         else:
                             break
-                    output_queue.append(token)
-                    previous_token_type = 'operator'
+                    operator_stack.append(token)
+                    previous_token_type = 'postfix_operator'
                     continue
 
                 while operator_stack:
@@ -165,11 +165,6 @@ class ExpressionParser:
                     raise MismatchedParenthesesException(expression, token_position)
                 operator_stack.pop()
                 previous_token_type = 'right_parenthesis'
-            elif token in ('u-', 'u~'):
-                if previous_token_type in ('number', 'right_parenthesis'):
-                    raise MissingOperandException("Missing operand for operator: {}".format(token), expression, token_position)
-                operator_stack.append(token)
-                previous_token_type = 'operator'
             else:
                 raise InvalidTokenException(token, expression, token_position)
 
