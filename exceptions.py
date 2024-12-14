@@ -136,3 +136,11 @@ class FactorialFloatException(CalculatorException):
         else:
             message = "Factorial is not defined for non-integer numbers."
         super().__init__(message)
+
+class ResultTooLargeException(CalculatorException):
+    """
+    Raised when the result of a calculation exceeds the allowable range.
+    """
+    def __init__(self, result):
+        message = f"The result {result} is too large to handle."
+        super().__init__(message)

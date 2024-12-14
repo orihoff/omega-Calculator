@@ -1,7 +1,7 @@
 # Operators.py
 from abc import ABC, abstractmethod
-from exceptions import DivisionByZeroException, FactorialNegativeNumberException, FactorialFloatException
-
+from exceptions import DivisionByZeroException, FactorialNegativeNumberException, FactorialFloatException, \
+    ResultTooLargeException, InvalidExpressionException
 
 
 class Operator(ABC):
@@ -62,6 +62,9 @@ class DivisionOperator(Operator):
     def evaluate(self, operand1, operand2):
         if operand2 == 0:
             raise DivisionByZeroException()
+        # בדיקה אם התוצאה תחרוג מ-MAX_RESULT
+        if abs(operand1 / operand2) > MAX_RESULT:
+            raise ResultTooLargeException(f"Result too large: {operand1} / {operand2}")
         return operand1 / operand2
 
 
@@ -70,13 +73,27 @@ class PowerOperator(Operator):
         super().__init__('^', 4, 'right', 2)
 
     def evaluate(self, operand1, operand2):
-        return pow(operand1, operand2)
+        # בדיקה מקדימה: חזקות גבוהות עלולות לחרוג מגבול ה-float
+        if operand1 > 1 and operand2 > 308:  # הגבלת החזקה לערכים סבירים
+            raise ResultTooLargeException(f"Exponent too large: {operand1}^{operand2}")
+        if operand1 < -1 and operand2 > 308:  # גם בסיס שלילי עם חזקה גדולה
+            raise ResultTooLargeException(f"Exponent too large: {operand1}^{operand2}")
+        if operand1 == 0 and operand2 < 0:  # מקרה של 0 בחזקה שלילית (לא מוגדר)
+            raise InvalidExpressionException("0 cannot be raised to a negative power.")
+
+        # חישוב התוצאה
+        result = pow(operand1, operand2)
+
+        # בדיקה לאחר החישוב
+        if abs(result) > MAX_RESULT:
+            raise ResultTooLargeException(result)
+
+        return result
 
 
+MAX_RESULT = 1e308
 class FactorialOperator(Operator):
     def __init__(self):
-        # Factorial with precedence lower than tilde (~)
-        # Example: precedence 6, left associativity
         super().__init__('!', 6, 'left', 1)
 
     def evaluate(self, operand1, operand2=None):
@@ -84,10 +101,20 @@ class FactorialOperator(Operator):
             raise FactorialNegativeNumberException(operand1)
         if not operand1.is_integer():
             raise FactorialFloatException(operand1)
+
+        # בדיקה אם העצרת תעבור את גבול ה-float
+        if operand1 > 170:  # מספרים מעל 170 יגרמו ל-Overflow ב-float
+            raise ResultTooLargeException(f"Factorial input too large: {operand1}")
         result = 1
         for i in range(1, int(operand1) + 1):
             result *= i
+
+        # בדיקה האם התוצאה עדיין בטווח המותר
+        if abs(result) > MAX_RESULT:
+            raise ResultTooLargeException(result)
+
         return result
+
 
 
 
