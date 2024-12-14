@@ -1,4 +1,3 @@
-# ExpressionParser.py
 import re
 from Operators import (
     AdditionOperator,
@@ -21,7 +20,8 @@ from exceptions import (
     ConsecutiveTildesException,
     MismatchedParenthesesException,
     MissingOperandException,
-    InvalidCharacterException
+    InvalidCharacterException,
+    FactorialFloatException  # Added exception for factorial of non-integers
 )
 
 
@@ -63,11 +63,10 @@ class ExpressionParser:
         )
         tokens = re.findall(token_pattern, expression)
 
-        # בדיקה לטילדות עוקבות
+        # Check for consecutive tildes
         for i in range(len(tokens) - 1):
             if tokens[i] == '~' and tokens[i + 1] == '~':
                 raise ConsecutiveTildesException(expression, expression.find('~~') + 1)
-
 
         return tokens
 
@@ -84,9 +83,6 @@ class ExpressionParser:
     def wrap_negatives(self, tokens):
         """
         Identifies and processes unary minus signs in the tokenized expression.
-        Does not add parentheses for sequences of minus signs at the start of the expression.
-        Wraps sequences of minus signs (from the second minus onward) within parentheses
-        only if they appear within the expression.
         """
         new_tokens = []
         i = 0
@@ -100,15 +96,12 @@ class ExpressionParser:
         while i < len(tokens):
             token = tokens[i]
             if token == '-':
-                # Check if it's a unary minus
                 is_unary = tokens[i - 1] in self.operator_symbols or tokens[i - 1] == self.left_parenthesis
                 if is_unary:
-                    # Wrap sequence of minuses in parentheses
                     new_tokens.append(self.left_parenthesis)
                     while i < len(tokens) and tokens[i] == '-':
                         new_tokens.append('u-')
                         i += 1
-                    # Add the next token (number or expression)
                     if i < len(tokens) and (self.is_number(tokens[i]) or tokens[i] == self.left_parenthesis):
                         new_tokens.append(tokens[i])
                         new_tokens.append(self.right_parenthesis)
@@ -119,7 +112,6 @@ class ExpressionParser:
                             ''.join(tokens), i
                         )
                 else:
-                    # Binary minus
                     new_tokens.append(token)
                     i += 1
             else:
@@ -165,7 +157,6 @@ class ExpressionParser:
                         token_position
                     )
 
-                # טיפול בקדימויות בין אופרטורים בערימה לאופרטור פוסט-פיקסי
                 while operator_stack:
                     top = operator_stack[-1]
                     if top == self.left_parenthesis:
@@ -236,6 +227,11 @@ class ExpressionParser:
                 operator = self.operators[token]
                 if operator.arity == 1:
                     a = stack.pop()
+
+                    # Check for factorial of non-integer
+                    if token == '!' and not a.is_integer():
+                        raise FactorialFloatException(a)
+
                     result = operator.evaluate(a)
                     stack.append(result)
 
@@ -248,6 +244,11 @@ class ExpressionParser:
             elif token in self.postfix_operators:
                 operator = self.operators[token]
                 a = stack.pop()
+
+                # Check for factorial of non-integer
+                if token == '!' and not a.is_integer():
+                    raise FactorialFloatException(a)
+
                 result = operator.evaluate(a)
                 stack.append(result)
 

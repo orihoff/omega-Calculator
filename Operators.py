@@ -1,6 +1,7 @@
 # Operators.py
 from abc import ABC, abstractmethod
-from exceptions import DivisionByZeroException, FactorialNegativeNumberException
+from exceptions import DivisionByZeroException, FactorialNegativeNumberException, FactorialFloatException
+
 
 
 class Operator(ABC):
@@ -74,17 +75,20 @@ class PowerOperator(Operator):
 
 class FactorialOperator(Operator):
     def __init__(self):
-        # עצרת עם קדימות נמוכה מטילדה
-        # לדוגמה: ! עם קדימות 5, אסוציאטיביות שמאלה
+        # Factorial with precedence lower than tilde (~)
+        # Example: precedence 6, left associativity
         super().__init__('!', 6, 'left', 1)
 
     def evaluate(self, operand1, operand2=None):
         if operand1 < 0:
-            raise FactorialNegativeNumberException()
+            raise FactorialNegativeNumberException(operand1)
+        if not operand1.is_integer():
+            raise FactorialFloatException(operand1)
         result = 1
         for i in range(1, int(operand1) + 1):
             result *= i
         return result
+
 
 
 class UnaryMinusOperator(Operator):

@@ -126,3 +126,13 @@ class FactorialNegativeNumberException(CalculatorException):
             message = "Factorial is not defined for negative numbers."
         super().__init__(message)
 
+class FactorialFloatException(CalculatorException):
+    """
+    Raised when attempting to calculate the factorial of a float number.
+    """
+    def __init__(self, operand=None):
+        if operand is not None:
+            message = f"Factorial is not defined for non-integer numbers: {operand}"
+        else:
+            message = "Factorial is not defined for non-integer numbers."
+        super().__init__(message)
