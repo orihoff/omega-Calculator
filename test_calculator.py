@@ -89,6 +89,12 @@ def test_simple_expressions(expression, expected):
     ("((3+5)@(2+3))^2+(10-3+9+1)", 59.25),
     ("((3+4)*(2+3)^2)+2+13+1", 191),
     ("(10/(2+3)+4)*3+11+3+1", 33),
+    ("~5!", None),
+    ("~--3", -3),
+    ("2--5!", None),
+
+
+
 
 ])
 def test_complex_expressions(expression, expected):

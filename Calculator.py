@@ -9,7 +9,6 @@ from exceptions import (
 )
 from Operators import Operator
 
-
 class Calculator:
     def __init__(self):
         """
@@ -70,13 +69,13 @@ class Calculator:
                     if not stack:
                         raise MissingOperandException(operator.symbol)
                     operand = stack.pop()
-                    result = operator.execute(operand)
+                    result = operator.evaluate(operand)  # שונה מ- execute ל- evaluate
                 elif operator.arity == 2:
                     if len(stack) < 2:
                         raise MissingOperandException(operator.symbol)
                     operand2 = stack.pop()
                     operand1 = stack.pop()
-                    result = operator.execute(operand1, operand2)
+                    result = operator.evaluate(operand1, operand2)  # שונה מ- execute ל- evaluate
                 else:
                     raise CalculatorException(f"Unsupported operator arity: {operator.arity}")
 
