@@ -99,21 +99,38 @@ class ExpressionParser:
                 is_unary = tokens[i - 1] in self.operator_symbols or tokens[i - 1] == self.left_parenthesis
                 if is_unary:
                     new_tokens.append(self.left_parenthesis)
+                    unary_minus_count = 0
                     while i < len(tokens) and tokens[i] == '-':
                         new_tokens.append('u-')
+                        unary_minus_count += 1
                         i += 1
-                    if i < len(tokens) and (self.is_number(tokens[i]) or tokens[i] == self.left_parenthesis):
-                        new_tokens.append(tokens[i])
-                        new_tokens.append(self.right_parenthesis)
-                        i += 1
-                    else:
-                        raise InvalidExpressionException(
-                            f"Invalid token sequence after unary minus: '{tokens[i]}'",
-                            ''.join(tokens), i
-                        )
+                    if i < len(tokens):
+                        if tokens[i] == '~':
+                            raise InvalidExpressionException(
+                                "Tilde ('~') cannot follow a unary minus or a sequence of unary minuses.",
+                                ''.join(tokens), i
+                            )
+                        if self.is_number(tokens[i]) or tokens[i] == self.left_parenthesis:
+                            new_tokens.append(tokens[i])
+                            new_tokens.append(self.right_parenthesis)
+                            i += 1
+                        else:
+                            raise InvalidExpressionException(
+                                f"Invalid token sequence after unary minus: '{tokens[i]}'",
+                                ''.join(tokens), i
+                            )
                 else:
                     new_tokens.append(token)
                     i += 1
+            elif token == '~':
+                # Prevent any tilde following unary minus directly
+                if new_tokens and new_tokens[-1] == 'u-':
+                    raise InvalidExpressionException(
+                        "Tilde ('~') cannot directly follow a unary minus.",
+                        ''.join(tokens), i
+                    )
+                new_tokens.append(token)
+                i += 1
             else:
                 new_tokens.append(token)
                 i += 1
