@@ -46,7 +46,7 @@ class ExpressionParser:
             '#': DigitSumOperator(),
         }
         self.operator_symbols = set(self.operators.keys())
-        self.postfix_operators = {'!'}
+        self.postfix_operators = {'!', '#'}
         self.left_parenthesis = '('
         self.right_parenthesis = ')'
 

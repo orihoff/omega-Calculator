@@ -93,9 +93,6 @@ def test_simple_expressions(expression, expected):
     ("~--3", -3),
     ("2--5!", None),
 
-
-
-
 ])
 def test_complex_expressions(expression, expected):
     result = calculator.calculate(expression)
