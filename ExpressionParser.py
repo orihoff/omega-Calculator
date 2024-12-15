@@ -35,7 +35,6 @@ class ExpressionParser:
             '-': SubtractionOperator(),
             'u-': UnaryMinusOperator(),
             '~': TildeOperator(),
-            'u~': TildeOperator(),
             '*': MultiplicationOperator(),
             '/': DivisionOperator(),
             '^': PowerOperator(),
