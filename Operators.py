@@ -92,30 +92,32 @@ class PowerOperator(Operator):
 
 
 MAX_RESULT = 1e308
+
 class FactorialOperator(Operator):
     def __init__(self):
-        super().__init__('!', 6, 'left', 1)
+        super().__init__('!', 6, 'right', 1)  # right associativity, unary operator
 
     def evaluate(self, operand1, operand2=None):
+        # Allow numbers very close to integers by rounding them
+        if abs(operand1 - round(operand1)) < 0.0001:
+            operand1 = round(operand1)  # Round to the nearest integer
+
+        # Validate the input after rounding
         if operand1 < 0:
             raise FactorialNegativeNumberException(operand1)
-        if not operand1.is_integer():
+        if operand1 != int(operand1):  # Check for non-integer values without using is_integer()
             raise FactorialFloatException(operand1)
 
-        # בדיקה אם העצרת תעבור את גבול ה-float
-        if operand1 > 170:  # מספרים מעל 170 יגרמו ל-Overflow ב-float
+        # Handle factorial for large numbers
+        operand1 = int(operand1)  # Ensure operand is an integer
+        if operand1 > 170:
             raise ResultTooLargeException(f"Factorial input too large: {operand1}")
+
+        # Calculate factorial iteratively
         result = 1
-        for i in range(1, int(operand1) + 1):
+        for i in range(1, operand1 + 1):
             result *= i
-
-        # בדיקה האם התוצאה עדיין בטווח המותר
-        if abs(result) > MAX_RESULT:
-            raise ResultTooLargeException(result)
-
         return result
-
-
 
 
 class UnaryMinusOperator(Operator):

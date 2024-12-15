@@ -21,7 +21,7 @@ from exceptions import (
     MismatchedParenthesesException,
     MissingOperandException,
     InvalidCharacterException,
-    FactorialFloatException  # Added exception for factorial of non-integers
+    FactorialFloatException
 )
 
 
@@ -150,9 +150,9 @@ class ExpressionParser:
                 operator_stack.append(token)
                 previous_token_type = 'operator'
             elif token in self.postfix_operators:
-                if previous_token_type not in ('number', 'right_parenthesis'):
+                if previous_token_type not in ('number', 'right_parenthesis', 'postfix_operator'):
                     raise InvalidExpressionException(
-                        f"Postfix operator '{token}' must follow a number or a closing parenthesis.",
+                        f"Postfix operator '{token}' must follow a number, another postfix operator, or a closing parenthesis.",
                         expression,
                         token_position
                     )
@@ -227,11 +227,6 @@ class ExpressionParser:
                 operator = self.operators[token]
                 if operator.arity == 1:
                     a = stack.pop()
-
-                    # Check for factorial of non-integer
-                    if token == '!' and not a.is_integer():
-                        raise FactorialFloatException(a)
-
                     result = operator.evaluate(a)
                     stack.append(result)
 
@@ -244,11 +239,6 @@ class ExpressionParser:
             elif token in self.postfix_operators:
                 operator = self.operators[token]
                 a = stack.pop()
-
-                # Check for factorial of non-integer
-                if token == '!' and not a.is_integer():
-                    raise FactorialFloatException(a)
-
                 result = operator.evaluate(a)
                 stack.append(result)
 
