@@ -126,7 +126,7 @@ class ExpressionParser:
                 # Prevent any tilde following unary minus directly
                 if new_tokens and new_tokens[-1] == 'u-':
                     raise InvalidExpressionException(
-                        "Tilde ('~') cannot directly follow a unary minus.",
+                        "Tilde ('~') cannot directly follow a non binary minus.",
                         ''.join(tokens), i
                     )
                 new_tokens.append(token)
