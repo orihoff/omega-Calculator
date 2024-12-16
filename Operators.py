@@ -177,11 +177,8 @@ class DigitSumOperator(Operator):
 
     def evaluate(self, operand1, operand2=None):
         if operand1 < 0:
-            # Handle negative numbers
-            operand1 = abs(operand1)
-            digit_sum = sum(int(digit) for digit in str(operand1) if digit.isdigit())
-            return -digit_sum
-        else:
-            # Handle positive numbers
-            digit_sum = sum(int(digit) for digit in str(operand1) if digit.isdigit())
-            return digit_sum
+            # Raise an error for negative numbers
+            raise InvalidExpressionException(f"DigitSumOperator is not defined for negative numbers: {operand1}")
+
+        digit_sum = sum(int(digit) for digit in str(abs(operand1)) if digit.isdigit())
+        return digit_sum
