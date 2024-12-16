@@ -67,6 +67,15 @@ class ExpressionParser:
             if tokens[i] == '~' and tokens[i + 1] == '~':
                 raise ConsecutiveTildesException(expression, expression.find('~~') + 1)
 
+        # **Add loop to detect empty parentheses () and raise an error**
+        for i in range(len(tokens) - 1):
+            if tokens[i] == self.left_parenthesis and tokens[i + 1] == self.right_parenthesis:
+                raise InvalidExpressionException(
+                    "Empty parentheses '()' are not allowed in the expression.",
+                    expression,
+                    i
+                )
+
         return tokens
 
     def is_operator(self, token):
@@ -97,7 +106,7 @@ class ExpressionParser:
             if token == '-':
                 is_unary = tokens[i - 1] in self.operator_symbols or tokens[i - 1] == self.left_parenthesis
                 if is_unary:
-                    new_tokens.append(self.left_parenthesis)
+                    new_tokens.append('(')
                     unary_minus_count = 0
                     while i < len(tokens) and tokens[i] == '-':
                         new_tokens.append('u-')
@@ -111,7 +120,7 @@ class ExpressionParser:
                             )
                         if self.is_number(tokens[i]) or tokens[i] == self.left_parenthesis:
                             new_tokens.append(tokens[i])
-                            new_tokens.append(self.right_parenthesis)
+                            new_tokens.append(')')
                             i += 1
                         else:
                             raise InvalidExpressionException(
@@ -125,7 +134,7 @@ class ExpressionParser:
                 # Prevent any tilde following unary minus directly
                 if new_tokens and new_tokens[-1] == 'u-':
                     raise InvalidExpressionException(
-                        "Tilde ('~') cannot directly follow a non binary minus.",
+                        "Tilde ('~') cannot directly follow a unary minus.",
                         ''.join(tokens), i
                     )
                 new_tokens.append(token)
@@ -210,7 +219,6 @@ class ExpressionParser:
 
                 operator_stack.append(token)
                 previous_token_type = 'operator'
-
             elif token == self.left_parenthesis:
                 operator_stack.append(token)
                 previous_token_type = 'left_parenthesis'
@@ -242,11 +250,15 @@ class ExpressionParser:
             elif token in self.operators:
                 operator = self.operators[token]
                 if operator.arity == 1:
+                    if not stack:
+                        raise MissingOperandException("Not enough operands for the operator.", token, 0)
                     a = stack.pop()
                     result = operator.evaluate(a)
                     stack.append(result)
 
                 elif operator.arity == 2:
+                    if len(stack) < 2:
+                        raise MissingOperandException("Not enough operands for the operator.", token, 0)
                     b = stack.pop()
                     a = stack.pop()
                     result = operator.evaluate(a, b)
@@ -254,6 +266,8 @@ class ExpressionParser:
 
             elif token in self.postfix_operators:
                 operator = self.operators[token]
+                if not stack:
+                    raise MissingOperandException("Not enough operands for the postfix operator.", token, 0)
                 a = stack.pop()
                 result = operator.evaluate(a)
                 stack.append(result)
