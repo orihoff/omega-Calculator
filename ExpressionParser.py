@@ -104,30 +104,42 @@ class ExpressionParser:
         while i < len(tokens):
             token = tokens[i]
             if token == '-':
-                is_unary = tokens[i - 1] in self.operator_symbols or tokens[i - 1] == self.left_parenthesis
-                if is_unary:
-                    new_tokens.append('(')
-                    unary_minus_count = 0
-                    while i < len(tokens) and tokens[i] == '-':
-                        new_tokens.append('u-')
-                        unary_minus_count += 1
+                # Determine if the minus is unary or binary
+                prev_token = tokens[i - 1] if i > 0 else None
+                if prev_token in self.operator_symbols or prev_token == self.left_parenthesis:
+                    if prev_token in self.postfix_operators:
+                        # Binary minus case after postfix operator
+                        new_tokens.append(token)
                         i += 1
-                    if i < len(tokens):
-                        if tokens[i] == '~':
-                            raise InvalidExpressionException(
-                                "Tilde ('~') cannot follow a unary minus or a sequence of unary minuses.",
-                                ''.join(tokens), i
-                            )
-                        if self.is_number(tokens[i]) or tokens[i] == self.left_parenthesis:
-                            new_tokens.append(tokens[i])
-                            new_tokens.append(')')
+                    else:
+                        # Unary minus case
+                        new_tokens.append('(')
+                        unary_minus_count = 0
+                        while i < len(tokens) and tokens[i] == '-':
+                            new_tokens.append('u-')
+                            unary_minus_count += 1
                             i += 1
-                        else:
-                            raise InvalidExpressionException(
-                                f"Invalid token sequence after unary minus: '{tokens[i]}'",
-                                ''.join(tokens), i
-                            )
+                        if i < len(tokens):
+                            if tokens[i] == '~':
+                                raise InvalidExpressionException(
+                                    "Tilde ('~') cannot follow a unary minus or a sequence of unary minuses.",
+                                    ''.join(tokens), i
+                                )
+                            if self.is_number(tokens[i]) or tokens[i] == self.left_parenthesis:
+                                new_tokens.append(tokens[i])
+                                new_tokens.append(')')
+                                i += 1
+                            else:
+                                raise InvalidExpressionException(
+                                    f"Invalid token sequence after unary minus: '{tokens[i]}'",
+                                    ''.join(tokens), i
+                                )
+                elif prev_token in self.postfix_operators:
+                    # Binary minus case after postfix operator
+                    new_tokens.append(token)
+                    i += 1
                 else:
+                    # Binary minus case
                     new_tokens.append(token)
                     i += 1
             elif token == '~':
@@ -275,3 +287,4 @@ class ExpressionParser:
         if len(stack) != 1:
             raise InvalidExpressionException("The user input has too many values.", '', 0)
         return stack[0]
+
