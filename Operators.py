@@ -53,7 +53,17 @@ class MultiplicationOperator(Operator):
         super().__init__('*', 2, 'left', 2)
 
     def evaluate(self, operand1, operand2):
-        return operand1 * operand2
+        try:
+            # חישוב הכפלה עם טיפול ב-OverflowError
+            result = operand1 * operand2
+        except OverflowError:
+            raise ResultTooLargeException(f"Result too large: {operand1} * {operand2}")
+
+        # בדיקה סופית שהתוצאה בגבולות המותרים
+        if abs(result) > MAX_RESULT:
+            raise ResultTooLargeException(f"Result too large: {result}")
+
+        return result
 
 
 class DivisionOperator(Operator):
@@ -74,20 +84,15 @@ class PowerOperator(Operator):
         super().__init__('^', 3, 'right', 2)
 
     def evaluate(self, operand1, operand2):
-        # בדיקה מקדימה: חזקות גבוהות עלולות לחרוג מגבול ה-float
-        if operand1 > 1 and operand2 > 308:  # הגבלת החזקה לערכים סבירים
-            raise ResultTooLargeException(f"Exponent too large: {operand1}^{operand2}")
-        if operand1 < -1 and operand2 > 308:  # גם בסיס שלילי עם חזקה גדולה
-            raise ResultTooLargeException(f"Exponent too large: {operand1}^{operand2}")
-        if operand1 == 0 and operand2 < 0:  # מקרה של 0 בחזקה שלילית (לא מוגדר)
-            raise InvalidExpressionException("0 cannot be raised to a negative power.")
+        try:
 
-        # חישוב התוצאה
-        result = pow(operand1, operand2)
+            result = pow(operand1, operand2)
+        except OverflowError:
 
-        # בדיקה לאחר החישוב
+            raise ResultTooLargeException(f"Result too large: {operand1}^{operand2}")
+
         if abs(result) > MAX_RESULT:
-            raise ResultTooLargeException(result)
+            raise ResultTooLargeException(f"Result too large: {result}")
 
         return result
 
