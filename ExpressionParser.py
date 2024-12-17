@@ -112,28 +112,50 @@ class ExpressionParser:
                         new_tokens.append(token)
                         i += 1
                     else:
-                        # Unary minus case
-                        new_tokens.append('(')
-                        unary_minus_count = 0
-                        while i < len(tokens) and tokens[i] == '-':
-                            new_tokens.append('u-')
-                            unary_minus_count += 1
-                            i += 1
-                        if i < len(tokens):
-                            if tokens[i] == '~':
-                                raise InvalidExpressionException(
-                                    "Tilde ('~') cannot follow a unary minus or a sequence of unary minuses.",
-                                    ''.join(tokens), i
-                                )
-                            if self.is_number(tokens[i]) or tokens[i] == self.left_parenthesis:
-                                new_tokens.append(tokens[i])
-                                new_tokens.append(')')
+                        # אם המינוס מופיע מיד לאחר '(' נתייחס אליו כמו לתחילת ביטוי (ללא סוגריים)
+                        if prev_token == self.left_parenthesis:
+                            unary_minus_count = 0
+                            while i < len(tokens) and tokens[i] == '-':
+                                new_tokens.append('u-')
+                                unary_minus_count += 1
                                 i += 1
-                            else:
-                                raise InvalidExpressionException(
-                                    f"Invalid token sequence after unary minus: '{tokens[i]}'",
-                                    ''.join(tokens), i
-                                )
+                            if i < len(tokens):
+                                if tokens[i] == '~':
+                                    raise InvalidExpressionException(
+                                        "Tilde ('~') cannot follow a unary minus or a sequence of unary minuses.",
+                                        ''.join(tokens), i
+                                    )
+                                if self.is_number(tokens[i]) or tokens[i] == self.left_parenthesis:
+                                    new_tokens.append(tokens[i])
+                                    i += 1
+                                else:
+                                    raise InvalidExpressionException(
+                                        f"Invalid token sequence after unary minus: '{tokens[i]}'",
+                                        ''.join(tokens), i
+                                    )
+                        else:
+                            # Unary minus case (כמו קודם)
+                            new_tokens.append('(')
+                            unary_minus_count = 0
+                            while i < len(tokens) and tokens[i] == '-':
+                                new_tokens.append('u-')
+                                unary_minus_count += 1
+                                i += 1
+                            if i < len(tokens):
+                                if tokens[i] == '~':
+                                    raise InvalidExpressionException(
+                                        "Tilde ('~') cannot follow a unary minus or a sequence of unary minuses.",
+                                        ''.join(tokens), i
+                                    )
+                                if self.is_number(tokens[i]) or tokens[i] == self.left_parenthesis:
+                                    new_tokens.append(tokens[i])
+                                    new_tokens.append(')')
+                                    i += 1
+                                else:
+                                    raise InvalidExpressionException(
+                                        f"Invalid token sequence after unary minus: '{tokens[i]}'",
+                                        ''.join(tokens), i
+                                    )
                 elif prev_token in self.postfix_operators:
                     # Binary minus case after postfix operator
                     new_tokens.append(token)

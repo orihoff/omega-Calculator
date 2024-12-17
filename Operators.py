@@ -1,4 +1,5 @@
 # Operators.py
+
 from abc import ABC, abstractmethod
 from exceptions import DivisionByZeroException, FactorialNegativeNumberException, FactorialFloatException, \
     ResultTooLargeException, InvalidExpressionException
@@ -176,9 +177,17 @@ class DigitSumOperator(Operator):
         super().__init__('#', 6, 'right', 1)  # Precedence 6, unary operator, right associativity
 
     def evaluate(self, operand1, operand2=None):
-        if operand1 < 0:
-            # Raise an error for negative numbers
+        operand_str = str(operand1)  # המרת הקלט למחרוזת
+
+        # בדיקה אם המספר בפורמט מדעי (מכיל 'e' או 'E')
+        if 'e' in operand_str.lower():
+            raise InvalidExpressionException(f"Number is too large: {operand1}")
+
+        # בדיקה אם המספר שלילי
+        if float(operand1) < 0:
             raise InvalidExpressionException(f"DigitSumOperator is not defined for negative numbers: {operand1}")
 
-        digit_sum = sum(int(digit) for digit in str(abs(operand1)) if digit.isdigit())
+        # חישוב סכום הספרות
+        digit_sum = sum(int(digit) for digit in operand_str if digit.isdigit())
         return digit_sum
+
