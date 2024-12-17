@@ -71,7 +71,7 @@ class DivisionOperator(Operator):
 
 class PowerOperator(Operator):
     def __init__(self):
-        super().__init__('^', 4, 'right', 2)
+        super().__init__('3', 4, 'right', 2)
 
     def evaluate(self, operand1, operand2):
         # בדיקה מקדימה: חזקות גבוהות עלולות לחרוג מגבול ה-float
@@ -131,8 +131,8 @@ class UnaryMinusOperator(Operator):
 
 class TildeOperator(Operator):
     def __init__(self):
-        # טילדה עם קדימות 7 (גבוהה משל !)
-        super().__init__('~', 7, 'right', 1)
+
+        super().__init__('~', 6, 'right', 1)
 
     def evaluate(self, operand1, operand2=None):
         return -operand1
@@ -140,7 +140,7 @@ class TildeOperator(Operator):
 
 class ModuloOperator(Operator):
     def __init__(self):
-        super().__init__('%', 3, 'left', 2)
+        super().__init__('%', 4, 'left', 2)
 
     def evaluate(self, operand1, operand2):
         if operand2 == 0:

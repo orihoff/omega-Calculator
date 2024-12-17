@@ -67,7 +67,7 @@ class ExpressionParser:
             if tokens[i] == '~' and tokens[i + 1] == '~':
                 raise ConsecutiveTildesException(expression, expression.find('~~') + 1)
 
-        # **Add loop to detect empty parentheses () and raise an error**
+        # Detect empty parentheses
         for i in range(len(tokens) - 1):
             if tokens[i] == self.left_parenthesis and tokens[i + 1] == self.right_parenthesis:
                 raise InvalidExpressionException(
@@ -104,7 +104,6 @@ class ExpressionParser:
         while i < len(tokens):
             token = tokens[i]
             if token == '-':
-                # Determine if the minus is unary or binary
                 prev_token = tokens[i - 1] if i > 0 else None
                 if prev_token in self.operator_symbols or prev_token == self.left_parenthesis:
                     if prev_token in self.postfix_operators:
@@ -112,7 +111,7 @@ class ExpressionParser:
                         new_tokens.append(token)
                         i += 1
                     else:
-                        # אם המינוס מופיע מיד לאחר '(' נתייחס אליו כמו לתחילת ביטוי (ללא סוגריים)
+                        # Handling minus after '('
                         if prev_token == self.left_parenthesis:
                             unary_minus_count = 0
                             while i < len(tokens) and tokens[i] == '-':
@@ -134,7 +133,7 @@ class ExpressionParser:
                                         ''.join(tokens), i
                                     )
                         else:
-                            # Unary minus case (כמו קודם)
+                            # Unary minus case with parentheses
                             new_tokens.append('(')
                             unary_minus_count = 0
                             while i < len(tokens) and tokens[i] == '-':
@@ -216,6 +215,8 @@ class ExpressionParser:
                         token_position
                     )
 
+                o1 = self.operators[token]
+                # טיפול מיוחד במקרה של '~' ו-'!' באותה קדימות ואסוציאטיביות
                 while operator_stack:
                     top = operator_stack[-1]
                     if top == self.left_parenthesis:
@@ -223,12 +224,17 @@ class ExpressionParser:
                     o2 = self.operators.get(top)
                     if not o2:
                         break
-                    if (o2.associativity == 'left' and o2.precedence >= self.operators[token].precedence) or \
-                       (o2.associativity == 'right' and o2.precedence > self.operators[token].precedence):
+                    # אם גם הטילדה וגם העצרת ימניות ובאותה קדימות, נוציא קודם את הטילדה
+                    if top == '~' and o1.precedence == o2.precedence and o1.associativity == 'right' and o2.associativity == 'right':
                         popped = operator_stack.pop()
                         output_queue.append(popped)
                     else:
-                        break
+                        if (o2.associativity == 'left' and o2.precedence >= o1.precedence) or \
+                           (o2.associativity == 'right' and o2.precedence > o1.precedence):
+                            popped = operator_stack.pop()
+                            output_queue.append(popped)
+                        else:
+                            break
 
                 output_queue.append(token)
                 previous_token_type = 'postfix_operator'
@@ -262,11 +268,12 @@ class ExpressionParser:
                     output_queue.append(popped)
                 if not operator_stack:
                     raise MismatchedParenthesesException(expression, token_position)
-                operator_stack.pop()
+                operator_stack.pop()  # Pop the '('
                 previous_token_type = 'right_parenthesis'
             else:
                 raise InvalidTokenException(token, expression, token_position)
 
+        # Pop any remaining operators
         while operator_stack:
             top = operator_stack.pop()
             if top in (self.left_parenthesis, self.right_parenthesis):
@@ -280,7 +287,6 @@ class ExpressionParser:
         for token in postfix_tokens:
             if isinstance(token, float):
                 stack.append(token)
-
             elif token in self.operators:
                 operator = self.operators[token]
                 if operator.arity == 1:
@@ -289,7 +295,6 @@ class ExpressionParser:
                     a = stack.pop()
                     result = operator.evaluate(a)
                     stack.append(result)
-
                 elif operator.arity == 2:
                     if len(stack) < 2:
                         raise MissingOperandException("Not enough operands for the operator.", token, 0)
@@ -308,5 +313,5 @@ class ExpressionParser:
 
         if len(stack) != 1:
             raise InvalidExpressionException("The user input has too many values.", '', 0)
-        return stack[0]
 
+        return stack[0]
