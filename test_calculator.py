@@ -49,6 +49,7 @@ def test_empty_and_whitespace(expression):
     ("(2+3)*4", 20),
     ("3+4*2", 11),
     ("(10-2)^2", 64),
+    ("(10#-2)^2", 1),
 ])
 def test_simple_expressions(expression, expected):
     result = calculator.calculate(expression)
