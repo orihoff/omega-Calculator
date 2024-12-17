@@ -71,7 +71,7 @@ class DivisionOperator(Operator):
 
 class PowerOperator(Operator):
     def __init__(self):
-        super().__init__('3', 4, 'right', 2)
+        super().__init__('^', 3, 'right', 2)
 
     def evaluate(self, operand1, operand2):
         # בדיקה מקדימה: חזקות גבוהות עלולות לחרוג מגבול ה-float
