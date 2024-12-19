@@ -99,6 +99,7 @@ class MismatchedParenthesesException(CalculatorException):
         marker = ' ' * index + '^'
         return f"{message}:\n{expression}\n{marker}"
 
+
 class InvalidCharacterException(CalculatorException):
     """
     Raised when an invalid character is encountered in the expression.
@@ -115,6 +116,7 @@ class InvalidCharacterException(CalculatorException):
         marker = ' ' * index + '^'
         return f"{message}:\n{expression}\n{marker}"
 
+
 class FactorialNegativeNumberException(CalculatorException):
     """
     Raised when attempting to calculate the factorial of a negative number.
@@ -126,6 +128,7 @@ class FactorialNegativeNumberException(CalculatorException):
             message = "Factorial is not defined for negative numbers."
         super().__init__(message)
 
+
 class FactorialFloatException(CalculatorException):
     """
     Raised when attempting to calculate the factorial of a float number.
@@ -136,6 +139,7 @@ class FactorialFloatException(CalculatorException):
         else:
             message = "Factorial is not defined for non-integer numbers."
         super().__init__(message)
+
 
 class ResultTooLargeException(CalculatorException):
     """

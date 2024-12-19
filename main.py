@@ -2,6 +2,7 @@
 
 from Calculator import *
 
+
 def main():
     calculator = Calculator()
     print("Advanced Calculator - Omega Class 2024")

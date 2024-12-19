@@ -4,6 +4,7 @@ from Calculator import Calculator
 
 calculator = Calculator()
 
+
 # Test invalid syntax
 @pytest.mark.parametrize("expression", [
     "2*^3",  # Invalid operator
@@ -15,6 +16,7 @@ calculator = Calculator()
 def test_invalid_syntax(expression):
     assert calculator.calculate(expression) is None
 
+
 # Test gibberish
 @pytest.mark.parametrize("expression", [
     "abc123",  # Random characters
@@ -24,6 +26,7 @@ def test_invalid_syntax(expression):
 def test_gibberish(expression):
     assert calculator.calculate(expression) is None
 
+
 # Test empty and whitespace strings
 @pytest.mark.parametrize("expression", [
     "",      # Empty string
@@ -32,6 +35,7 @@ def test_gibberish(expression):
 ])
 def test_empty_and_whitespace(expression):
     assert calculator.calculate(expression) is None
+
 
 # Test simple expressions
 @pytest.mark.parametrize("expression, expected", [
@@ -54,6 +58,7 @@ def test_empty_and_whitespace(expression):
 def test_simple_expressions(expression, expected):
     result = calculator.calculate(expression)
     assert result == pytest.approx(expected, rel=1e-5), f"Failed for expression: {expression}"
+
 
 # Test complex expressions
 @pytest.mark.parametrize("expression, expected", [
@@ -98,4 +103,3 @@ def test_simple_expressions(expression, expected):
 def test_complex_expressions(expression, expected):
     result = calculator.calculate(expression)
     assert result == pytest.approx(expected, rel=1e-5), f"Failed for expression: {expression}"
-

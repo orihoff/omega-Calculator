@@ -7,7 +7,7 @@ from exceptions import (
     MissingOperandException,
     FactorialNegativeNumberException,
 )
-from Operators import Operator
+
 
 class Calculator:
     def __init__(self):

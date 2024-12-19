@@ -1,4 +1,3 @@
-import re
 from Operators import (
     AdditionOperator,
     SubtractionOperator,
@@ -20,8 +19,7 @@ from exceptions import (
     ConsecutiveTildesException,
     MismatchedParenthesesException,
     MissingOperandException,
-    InvalidCharacterException,
-    FactorialFloatException
+
 )
 
 
@@ -52,22 +50,47 @@ class ExpressionParser:
 
     def tokenize(self, expression):
         """
-        Tokenize a mathematical expression into numbers, operators, and parentheses.
+        Tokenize a mathematical expression into numbers, operators, and parentheses without using 're'.
         """
+        # הסרת רווחים
         expression = expression.replace(' ', '')
-        token_pattern = (
-            r'\d+\.?\d*'
-            r'|[' + re.escape(''.join(self.operator_symbols)) + r'\(\)]'
-            r'|.'
-        )
-        tokens = re.findall(token_pattern, expression)
+        tokens = []
+        i = 0
+        length = len(expression)
 
-        # Check for consecutive tildes
+        while i < length:
+            ch = expression[i]
+
+            if ch.isdigit():
+                start = i
+                i += 1
+                has_decimal = False
+                # collect num until non digit and not dot
+                while i < length:
+                    if expression[i].isdigit():
+                        i += 1
+                    elif expression[i] == '.' and not has_decimal:
+                        has_decimal = True
+                        i += 1
+                    else:
+                        break
+                tokens.append(expression[start:i])
+
+            # Checking Parentheses and Recognized Operators
+            elif ch in self.operator_symbols or ch == self.left_parenthesis or ch == self.right_parenthesis:
+                tokens.append(ch)
+                i += 1
+            else:
+                # Any Unknown or Unexpected Character
+                tokens.append(ch)
+                i += 1
+
+        # Checking Consecutive Tildes
         for i in range(len(tokens) - 1):
             if tokens[i] == '~' and tokens[i + 1] == '~':
                 raise ConsecutiveTildesException(expression, expression.find('~~') + 1)
 
-        # Detect empty parentheses
+        # Checking Empty Parentheses
         for i in range(len(tokens) - 1):
             if tokens[i] == self.left_parenthesis and tokens[i + 1] == self.right_parenthesis:
                 raise InvalidExpressionException(
@@ -81,7 +104,8 @@ class ExpressionParser:
     def is_operator(self, token):
         return token in self.operator_symbols
 
-    def is_number(self, token):
+    @staticmethod
+    def is_number(token):
         try:
             float(token)
             return True
@@ -210,13 +234,13 @@ class ExpressionParser:
             elif token in self.postfix_operators:
                 if previous_token_type not in ('number', 'right_parenthesis', 'postfix_operator'):
                     raise InvalidExpressionException(
-                        f"Postfix operator '{token}' must follow a number, another postfix operator, or a closing parenthesis.",
+                        f"Postfix operator '{token}' must follow a number, another postfix operator,"
+                        f" or a closing parenthesis.",
                         expression,
                         token_position
                     )
 
                 o1 = self.operators[token]
-                # טיפול מיוחד במקרה של '~' ו-'!' באותה קדימות ואסוציאטיביות
                 while operator_stack:
                     top = operator_stack[-1]
                     if top == self.left_parenthesis:
@@ -224,8 +248,8 @@ class ExpressionParser:
                     o2 = self.operators.get(top)
                     if not o2:
                         break
-                    # אם גם הטילדה וגם העצרת ימניות ובאותה קדימות, נוציא קודם את הטילדה
-                    if top == '~' and o1.precedence == o2.precedence and o1.associativity == 'right' and o2.associativity == 'right':
+                    if top == '~' and o1.precedence == o2.precedence and o1.associativity == 'right' \
+                            and o2.associativity == 'right':
                         popped = operator_stack.pop()
                         output_queue.append(popped)
                     else:
