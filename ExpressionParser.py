@@ -50,9 +50,9 @@ class ExpressionParser:
 
     def tokenize(self, expression):
         """
-        Tokenize a mathematical expression into numbers, operators, and parentheses without using 're'.
+        Tokenize a mathematical expression into numbers, operators, and parentheses.
         """
-        # הסרת רווחים
+        # remove spaces
         expression = expression.replace(' ', '')
         tokens = []
         i = 0
@@ -65,7 +65,7 @@ class ExpressionParser:
                 start = i
                 i += 1
                 has_decimal = False
-                # collect num until non digit and not dot
+                # collect num til non digit and not dot
                 while i < length:
                     if expression[i].isdigit():
                         i += 1
